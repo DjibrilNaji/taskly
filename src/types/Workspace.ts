@@ -20,6 +20,8 @@ export type WorkspaceSummary = {
   id: number
   name: string
   slug: string
+  description: string
+  owner_id: string
   created_at: Date
   _count: {
     Task: number

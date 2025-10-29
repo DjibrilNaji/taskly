@@ -28,6 +28,8 @@ export const getUserProjectsSummary = async (id: string) => {
           id: true,
           name: true,
           slug: true,
+          description: true,
+          owner_id: true,
           created_at: true,
 
           _count: {

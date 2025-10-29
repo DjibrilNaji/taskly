@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { Pencil } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
@@ -7,7 +8,9 @@ import { toast } from "sonner"
 import z from "zod"
 
 import { createProjectAction } from "@/actions/create-projects"
-import { createProjectFormSchema, CreateProjectType } from "@/types/formTypes"
+import { updateProjectAction } from "@/actions/update-project"
+import { projectFormSchema, ProjectType } from "@/types/formTypes"
+import { WorkspaceSummary } from "@/types/Workspace"
 import { Button } from "@/web/components/ui/button"
 import {
   Dialog,
@@ -31,30 +34,45 @@ import { Input } from "@/web/components/ui/input"
 import { Spinner } from "@/web/components/ui/spinner"
 import { Textarea } from "@/web/components/ui/textarea"
 
-interface CreateProjectDialogProps {
-  userId: string
+export enum ProjectMode {
+  CREATE = "create",
+  UPDATE = "update"
 }
 
-export function CreateProjectDialog({ userId }: CreateProjectDialogProps) {
+interface ProjectDialogProps {
+  userId: string
+  mode: ProjectMode
+  project?: WorkspaceSummary
+}
+
+export function ProjectDialog({ userId, mode, project }: ProjectDialogProps) {
   const t = useTranslations()
   const queryClient = useQueryClient()
   const [open, setOpen] = useState(false)
 
-  const form = useForm<z.infer<typeof createProjectFormSchema>>({
-    resolver: zodResolver(createProjectFormSchema),
+  const form = useForm<z.infer<typeof projectFormSchema>>({
+    resolver: zodResolver(projectFormSchema),
     defaultValues: {
-      name: "",
-      description: ""
+      name: project?.name ?? "",
+      description: project?.description ?? ""
     }
   })
 
   const mutation = useMutation({
-    mutationFn: async (data: CreateProjectType) => {
-      await createProjectAction(data)
+    mutationFn: async (data: ProjectType) => {
+      if (mode === ProjectMode.CREATE) {
+        await createProjectAction(data)
+      } else if (mode === ProjectMode.UPDATE && project) {
+        await updateProjectAction(project.id, data)
+      }
     },
     onSuccess: async () => {
       form.reset()
-      toast.success(t("Projects.createdSuccessfully"))
+      toast.success(
+        mode === ProjectMode.CREATE
+          ? t("Projects.createdSuccessfully")
+          : t("Projects.updatedSuccessfully")
+      )
       await queryClient.invalidateQueries({ queryKey: ["user", userId] })
       setOpen(false)
     },
@@ -68,22 +86,42 @@ export function CreateProjectDialog({ userId }: CreateProjectDialogProps) {
     }
   })
 
-  const onSubmit = (data: CreateProjectType) => {
+  const onSubmit = (data: ProjectType) => {
     mutation.mutate(data)
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild className="self-end">
-        <Button size="sm" effect={"ringHover"}>
-          {t("Projects.createProject")}
+        <Button
+          size="sm"
+          effect={mode === ProjectMode.CREATE ? "ringHover" : undefined}
+          variant={mode === ProjectMode.CREATE ? undefined : "ghost"}
+          className={mode === ProjectMode.UPDATE ? "w-full justify-start flex gap-3" : ""}
+        >
+          {mode === ProjectMode.CREATE ? (
+            t("Projects.createProject")
+          ) : (
+            <>
+              <Pencil />
+              {t("Projects.update")}
+            </>
+          )}
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{t("Projects.createNewProject")}</DialogTitle>
-          <DialogDescription>{t("Projects.createProjectDescription")}</DialogDescription>
+          <DialogTitle>
+            {mode === ProjectMode.CREATE
+              ? t("Projects.createNewProject")
+              : t("Projects.updateProject")}
+          </DialogTitle>
+          <DialogDescription>
+            {mode === ProjectMode.CREATE
+              ? t("Projects.createProjectDescription")
+              : t("Projects.editProjectDescription")}
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -121,14 +159,16 @@ export function CreateProjectDialog({ userId }: CreateProjectDialogProps) {
                 <Button variant="outline">{t("Projects.cancel")}</Button>
               </DialogClose>
 
-              <Button type="submit" size="sm" effect={"ringHover"} disabled={mutation.isPending}>
+              <Button type="submit" size="sm" effect="ringHover" disabled={mutation.isPending}>
                 {mutation.isPending ? (
                   <>
                     <Spinner />
-                    {t("Projects.creating")}
+                    {mode === ProjectMode.CREATE ? t("Projects.creating") : t("Projects.updating")}
                   </>
-                ) : (
+                ) : mode === ProjectMode.CREATE ? (
                   t("Projects.create")
+                ) : (
+                  t("Projects.update")
                 )}
               </Button>
             </DialogFooter>

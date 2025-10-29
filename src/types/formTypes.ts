@@ -36,7 +36,7 @@ export const updateFormSchema = z
 
 export type UpdateType = z.infer<typeof updateFormSchema>
 
-export const createProjectFormSchema = z
+export const projectFormSchema = z
   .object({
     name: stringValidator.min(2, {
       message: "Error.projectNameError"
@@ -47,4 +47,4 @@ export const createProjectFormSchema = z
   })
   .required()
 
-export type CreateProjectType = z.infer<typeof createProjectFormSchema>
+export type ProjectType = z.infer<typeof projectFormSchema>

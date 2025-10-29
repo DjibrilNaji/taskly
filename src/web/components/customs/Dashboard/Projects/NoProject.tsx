@@ -1,7 +1,10 @@
 import { Folder } from "lucide-react"
 import { useTranslations } from "next-intl"
 
-import { CreateProjectDialog } from "@/web/components/customs/Dashboard/Projects/CreateProjectDialog"
+import {
+  ProjectDialog,
+  ProjectMode
+} from "@/web/components/customs/Dashboard/Projects/ProjectDialog"
 import {
   Empty,
   EmptyContent,
@@ -32,7 +35,7 @@ export function NoProject({ userId }: NoProjectProps) {
 
       <EmptyContent>
         <div className="flex gap-2">
-          <CreateProjectDialog userId={userId} />
+          <ProjectDialog userId={userId} mode={ProjectMode.CREATE} />
         </div>
       </EmptyContent>
     </Empty>

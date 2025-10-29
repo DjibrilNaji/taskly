@@ -6,8 +6,11 @@ import { useTranslations } from "next-intl"
 
 import { AppSidebarHeader } from "@/web/components/customs/Dashboard/AppSidebar/AppSidebarHeader"
 import { AppSidebarSkeleton } from "@/web/components/customs/Dashboard/AppSidebar/AppSidebarSkeleton"
-import { CreateProjectDialog } from "@/web/components/customs/Dashboard/Projects/CreateProjectDialog"
 import { NoProject } from "@/web/components/customs/Dashboard/Projects/NoProject"
+import {
+  ProjectDialog,
+  ProjectMode
+} from "@/web/components/customs/Dashboard/Projects/ProjectDialog"
 import { ProjectsCard } from "@/web/components/customs/Dashboard/Projects/ProjectsCard"
 import { ErrorState } from "@/web/components/customs/Utils/ErrorState"
 import { SidebarInset } from "@/web/components/ui/sidebar"
@@ -49,7 +52,7 @@ export function Projects({ userId }: DashboardProps) {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="container mx-auto px-4 flex flex-col py-2"
         >
-          <CreateProjectDialog userId={user.id} />
+          <ProjectDialog userId={user.id} mode={ProjectMode.CREATE} />
 
           <div className="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {user.Workspace.map((workspace) => (
